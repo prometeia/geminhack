@@ -4,13 +4,14 @@ from .geminlib import GeminAPI, GeminHack, last_commenter
 
 app = Flask(__name__)
 api_auth = environ['GEMINI_API_AUTH'].split(':')
-ghack = GeminHack(GeminAPI(*api_auth))
+gapi = GeminAPI(*api_auth)
 
 
 @app.route("/wip")
 def wip():
+    ghack = GeminHack(gapi)
     wiptt = ghack.wip
-    for ticket in wiptt:
+    for ticket in ghack.wip:
         for killme in ("Description", "Attachments"):
             try:
                 del ticket[killme]
@@ -18,6 +19,8 @@ def wip():
                 pass
         ticket["last_commenter"] = last_commenter(ticket)
         ticket["item_url"] = ghack.gapi.item_url(ticket['Id'])
+        ticket['CustomFields'] = {t['Name']: t for t in ticket['CustomFields']}
+        ticket["responsible"] = ticket
     return render_template('wip.html', wip=wiptt, home=ghack.gapi.home)
 
 

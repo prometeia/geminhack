@@ -1,18 +1,57 @@
 <!doctype html>
-<title>GeminHack - WiP</title>
-<body>
-    <h1>PYTHO wip tickets</h1>
-    <ul>
-        {% for ti in wip %}
-        <li>
-            Issue <a href="{{ (ti['item_url']) }}" target="_blank">{{  ti["IssueKey"] }}</a>
-            has status <b>{{ ti["Status"] }}</b>
-            and last commenter <i>{{ ti["last_commenter"] }}</i>:
-            <i>{{ ti["Title"] }}</i>.
-        </li>
-        {% endfor %}
-    </ul>
-    <hr>
-    <a href="{{ home }}" target="_blank">Gemini HOME</a>
-</body>
-
+<html>
+    <head>
+        <title>GeminHack - WiP</title>
+        <!-- Bootstrap -->
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+    </head>
+    <body>
+        <h1>PYTHO wip <a href="{{ home }}" target="_blank">tickets</a></h1>
+        <table class="table table-striped">
+            <tr>
+                <th>
+                    Issue
+                </th>
+                <th>
+                    Title
+                </th>
+                <th>
+                    Responsible
+                </th>
+                <th>
+                    Status
+                </th>
+                <th>
+                    Priority/Severity
+                </th>
+                <th>
+                    Last commenter
+                </th>
+            </tr>
+            {% for ti in wip %}
+            <tr>
+                <td>
+                    <a href="{{ (ti['item_url']) }}" target="_blank">{{  ti["IssueKey"] }}</a>
+                </td>
+                <td>
+                    {{ ti["Title"] }}
+                </td>
+                <td>
+                    {{ ti['CustomFields']['Responsible']['FormattedData']}}
+                </td>
+                <td>
+                    {{ ti["Status"] }}
+                </td>
+                <td>
+                    {{ ti["Priority"] }}/{{ ti["Severity"].split(" ")[-1] }}
+                </td>
+                <td>
+                    {{ ti["last_commenter"] }}
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+    </body>
+</html>
