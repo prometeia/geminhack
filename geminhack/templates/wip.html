@@ -1,0 +1,18 @@
+<!doctype html>
+<title>GeminHack - WiP</title>
+<body>
+    <h1>PYTHO wip tickets</h1>
+    <ul>
+        {% for ti in wip %}
+        <li>
+            Issue <a href="{{ (ti['item_url']) }}" target="_blank">{{  ti["IssueKey"] }}</a>
+            has status <b>{{ ti["Status"] }}</b>
+            and last commenter <i>{{ ti["last_commenter"] }}</i>:
+            <i>{{ ti["Title"] }}</i>.
+        </li>
+        {% endfor %}
+    </ul>
+    <hr>
+    <a href="{{ home }}" target="_blank">Gemini HOME</a>
+</body>
+

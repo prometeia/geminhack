@@ -1,8 +1,5 @@
 import requests
 import json
-import os
-import glob
-import sys
 
 PYTHO_WORKSPACE_ID = 3116
 ESUP_PROJECT_ID = 46
@@ -87,7 +84,7 @@ class GeminHack(object):
 
     @property
     def wip(self):
-        return self.wip_real + self.wip_virtual
+        return sorted(self.wip_real + self.wip_virtual, key=lambda x: x.get("Revised"))
 
     @property
     def responded(self):
@@ -102,6 +99,9 @@ class GeminHack(object):
 
 
 if __name__ == '__main__':
+    import os
+    import glob
+    import sys
     gapi = GeminAPI(*sys.argv[1:3])
     ge = GeminHack(gapi)
     dwhere = "export"
@@ -110,10 +110,10 @@ if __name__ == '__main__':
     except FileExistsError:
         for ajson in glob.glob("%s/*.json" % dwhere):
             os.remove(ajson)
-    for ti in sorted(ge.wip, key=lambda x: x.get("Revised")):
+    for ti in ge.wip:
         for killme in ("Description", "Attachments"):
             del ti[killme]
-        print('- Issue [%s](%s) has status *%s* and lastcommenter *%s*.' % (
-            ti["IssueKey"], gapi.item_url(ti["Id"]), ti["Status"], last_commenter(ti)
+        print('- Issue [%s](%s) has status *%s* and last commenter "%s": *%s*.' % (
+            ti["IssueKey"], gapi.item_url(ti["Id"]), ti["Status"], last_commenter(ti), ti["Title"]
         ))
         jdump(ti, "%s/%s.json" % (dwhere, ti["IssueKey"]))
