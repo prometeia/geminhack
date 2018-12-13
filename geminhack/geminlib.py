@@ -65,7 +65,8 @@ class GeminHack(object):
         self.gapi = geminapi
         self.tickets = {bid: self.gapi.item(bid) for bid in self.gapi.badges}
         # TODO: Discover from gapi
-        self.allofus = ["Luigi Curzi", "Denis Brandolini", "Glauco Uri", "Loredana Ribatto"]
+        self.allofus = ["Luigi Curzi", "Denis Brandolini", "Glauco Uri", "Loredana Ribatto",
+                        "Matteo Gnudi", "Marco Montanari"]
 
     @property
     def statuses(self):
