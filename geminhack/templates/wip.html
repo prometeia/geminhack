@@ -9,7 +9,7 @@
         <link rel="icon" href="/statics/favicon-ghack-1024.png" type="image/png" />
     </head>
     <body>
-        <h1>PYTHO wip <a href="{{ home }}" target="_blank">tickets</a></h1>
+        <h1><a href="{{ workspace }}">PYTHO</a> wip <a href="{{ project_page }}" target="_blank">tickets</a></h1>
         <table class="table table-striped">
             <tr>
                 <th>
@@ -29,6 +29,9 @@
                 </th>
                 <th>
                     Last commenter
+                </th>
+                <th>
+                    Revised
                 </th>
             </tr>
             {% for ti in wip %}
@@ -50,6 +53,9 @@
                 </td>
                 <td>
                     {{ ti["last_commenter"] }}
+                </td>
+                <td>
+                    {{ ti["Revised"].split('T')[0] }}
                 </td>
             </tr>
             {% endfor %}

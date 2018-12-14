@@ -21,7 +21,7 @@ def wip():
         ticket["item_url"] = ghack.gapi.item_url(ticket['Id'])
         ticket['CustomFields'] = {t['Name']: t for t in ticket['CustomFields']}
         ticket["responsible"] = ticket
-    return render_template('wip.html', wip=wiptt, home=ghack.gapi.home)
+    return render_template('wip.html', wip=wiptt, home=ghack.gapi.project_page, workspace=ghack.gapi.workspace_page)
 
 
 if __name__ == '__main__':

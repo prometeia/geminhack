@@ -52,8 +52,12 @@ class GeminAPI(object):
         return self.get("items", itemid) or {}
 
     @property
-    def home(self):
+    def project_page(self):
         return self.get("projects", self.prjid).get("HomePageUrl", "")
+
+    @property
+    def workspace_page(self):
+        return "/".join([self.base_uri, "workspace", str(self.wsid), "items"])
 
     def item_url(self, itemid):
         return "%s/workspace/%d/item/%d" % (self.base_uri, self.wsid, itemid)
@@ -85,7 +89,7 @@ class GeminHack(object):
 
     @property
     def wip(self):
-        return sorted(self.wip_real + self.wip_virtual, key=lambda x: x.get("Revised"))
+        return sorted(self.wip_real + self.wip_virtual, key=lambda x: x.get("Revised"), reverse=True)
 
     @property
     def responded(self):
