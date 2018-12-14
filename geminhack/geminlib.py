@@ -81,7 +81,7 @@ class GeminHack(object):
     
     @property
     def wip_real(self):
-        return self._instatus("In charge", "Open")
+        return self._instatus("In charge", "Open", "Initial Response")
 
     @property
     def wip_virtual(self):
@@ -93,7 +93,7 @@ class GeminHack(object):
 
     @property
     def responded(self):
-        return self._instatus("Initial Response", "Responded")
+        return self._instatus("Responded")
 
     @property
     def ids(self):
