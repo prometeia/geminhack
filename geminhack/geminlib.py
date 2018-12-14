@@ -73,11 +73,11 @@ class GeminHack(object):
         return set(t['Status'] for t in self.tickets.values())
 
     def _instatus(self, *statuses):
-        return [t for t in self.tickets.values() if t['Status'] in statuses]
+        return [t for t in self.tickets.values() if t['Status'].lower() in [s.lower() for s in statuses]]
     
     @property
     def wip_real(self):
-        return self._instatus("In Charge", "Open")
+        return self._instatus("In charge", "Open")
 
     @property
     def wip_virtual(self):
