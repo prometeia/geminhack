@@ -4,24 +4,35 @@ from .geminlib import GeminAPI, GeminHack, last_commenter
 
 app = Flask(__name__)
 api_auth = environ['GEMINI_API_AUTH'].split(':')
+contextroot = environ.get('CONTEXT_ROOT') or ''
 gapi = GeminAPI(*api_auth)
 
 
-@app.route("/wip")
-def wip():
+def route(subpath):
+    return app.route('%s/%s' % (contextroot, subpath))
+
+
+def render_ticktable(ghack, title, rows):
+    return render_template(
+        'ticktable.html', title=title, rows=rows, home=ghack.gapi.project_page, workspace=ghack.gapi.workspace_page)
+
+
+@route("wip")
+def tt_wip():
     ghack = GeminHack(gapi)
-    wiptt = ghack.wip
-    for ticket in ghack.wip:
-        for killme in ("Description", "Attachments"):
-            try:
-                del ticket[killme]
-            except KeyError:
-                pass
-        ticket["last_commenter"] = last_commenter(ticket)
-        ticket["item_url"] = ghack.gapi.item_url(ticket['Id'])
-        ticket['CustomFields'] = {t['Name']: t for t in ticket['CustomFields']}
-        ticket["responsible"] = ticket
-    return render_template('wip.html', wip=wiptt, home=ghack.gapi.project_page, workspace=ghack.gapi.workspace_page)
+    return render_ticktable(ghack, "WiP", ghack.wip)
+
+
+@route("all")
+def tt_all():
+    ghack = GeminHack(gapi)
+    return render_ticktable(ghack, "All", ghack.tickets)
+
+
+@route("active")
+def tt_active():
+    ghack = GeminHack(gapi)
+    return render_ticktable(ghack, "Active", ghack.active)
 
 
 if __name__ == '__main__':

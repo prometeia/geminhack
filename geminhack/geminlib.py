@@ -48,8 +48,11 @@ class GeminAPI(object):
     def badges(self):
         return self.workspace.get('CardData', {}).get('Badges', [])
 
-    def item(self, itemid):
-        return self.get("items", itemid) or {}
+    def item(self, itemid, clean=True):
+        ite = self.get("items", itemid) or {}
+        if clean:
+            ite = self.clean_item(ite)
+        return ite
 
     @property
     def project_page(self):
@@ -62,22 +65,39 @@ class GeminAPI(object):
     def item_url(self, itemid):
         return "%s/workspace/%d/item/%d" % (self.base_uri, self.wsid, itemid)
 
+    def clean_item(self, item):
+        """Remove and reformat fields"""
+        ticket = item.copy()
+        for kme in ("Description", "Attachments"):
+            try:
+                del ticket[kme]
+            except KeyError:
+                pass
+        ticket["last_commenter"] = last_commenter(ticket)
+        ticket["item_url"] = self.item_url(ticket["Id"])
+        cfields = {t["Name"]: t for t in ticket.pop("CustomFields")}
+        ticket.update(cfields)
+        return ticket
+
 
 class GeminHack(object):
 
     def __init__(self, geminapi):
         self.gapi = geminapi
-        self.tickets = {bid: self.gapi.item(bid) for bid in self.gapi.badges}
+        self._tickets = {bid: self.gapi.item(bid) for bid in self.gapi.badges}
         # TODO: Discover from gapi
         self.allofus = ["Luigi Curzi", "Denis Brandolini", "Glauco Uri", "Loredana Ribatto",
                         "Matteo Gnudi", "Marco Montanari"]
 
     @property
     def statuses(self):
-        return set(t['Status'] for t in self.tickets.values())
+        return set(t['Status'] for t in self._tickets.values())
 
     def _instatus(self, *statuses):
-        return [t for t in self.tickets.values() if t['Status'].lower() in [s.lower() for s in statuses]]
+        return [t for t in self.tickets if t['Status'].lower() in [s.lower() for s in statuses]]
+
+    def _notinstatus(self, *statuses):
+        return [t for t in self.tickets if t['Status'].lower() not in [s.lower() for s in statuses]]
     
     @property
     def wip_real(self):
@@ -88,8 +108,17 @@ class GeminHack(object):
         return [t for t in self.responded if not self.we_lastcommented(t)]
 
     @property
+    def tickets(self):
+        return sorted(self._tickets.values(), key=lambda x: x.get("Revised"), reverse=True)
+
+    @property
+    def active(self):
+        return self._notinstatus('closed')
+
+    @property
     def wip(self):
         return sorted(self.wip_real + self.wip_virtual, key=lambda x: x.get("Revised"), reverse=True)
+
 
     @property
     def responded(self):
@@ -97,7 +126,7 @@ class GeminHack(object):
 
     @property
     def ids(self):
-        return sorted(self.tickets)
+        return sorted(self._tickets)
 
     def we_lastcommented(self, tick):
         return last_commenter(tick) in self.allofus
