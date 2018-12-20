@@ -23,6 +23,13 @@ def last_commenter(tick):
     return cms[0].get("BaseEntity", {}).get("Fullname") or ""
 
 
+def last_comment(tick):
+    cms = tick["Comments"]
+    if not cms:
+        return ""
+    return cms[0].get("BaseEntity", {}).get("Comment") or ""
+
+
 class GeminAPI(object):
     base_uri = "https://erm-swfactory.prometeia.com/Gemini"
 
@@ -74,6 +81,7 @@ class GeminAPI(object):
             except KeyError:
                 pass
         ticket["last_commenter"] = last_commenter(ticket)
+        ticket["last_comment"] = last_comment(ticket)
         ticket["item_url"] = self.item_url(ticket["Id"])
         cfields = {t["Name"]: t for t in ticket.pop("CustomFields")}
         ticket.update(cfields)
@@ -119,7 +127,6 @@ class GeminHack(object):
     def wip(self):
         return sorted(self.wip_real + self.wip_virtual, key=lambda x: x.get("Revised"), reverse=True)
 
-
     @property
     def responded(self):
         return self._instatus("Responded")
@@ -134,20 +141,14 @@ class GeminHack(object):
 
 if __name__ == '__main__':
     import os
-    import glob
     import sys
+    import tempfile
     gapi = GeminAPI(*sys.argv[1:3])
     ge = GeminHack(gapi)
-    dwhere = "export"
-    try:
-        os.mkdir(dwhere)
-    except FileExistsError:
-        for ajson in glob.glob("%s/*.json" % dwhere):
-            os.remove(ajson)
+    dwhere = tempfile.mkdtemp("export", "geminhack")
+    print("Exporting issue in %s" % dwhere)
     for ti in ge.wip:
-        for killme in ("Description", "Attachments"):
-            del ti[killme]
         print('- Issue [%s](%s) has status *%s* and last commenter "%s": *%s*.' % (
             ti["IssueKey"], gapi.item_url(ti["Id"]), ti["Status"], last_commenter(ti), ti["Title"]
         ))
-        jdump(ti, "%s/%s.json" % (dwhere, ti["IssueKey"]))
+        jdump(ti, os.path.join(dwhere, ti["IssueKey"] + ".json"))

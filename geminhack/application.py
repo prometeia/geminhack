@@ -14,7 +14,12 @@ def route(subpath):
 
 def render_ticktable(ghack, title, rows):
     return render_template(
-        'ticktable.html', title=title, rows=rows, home=ghack.gapi.project_page, workspace=ghack.gapi.workspace_page)
+        'ticktable.html', title=title, rows=rows, project_page=ghack.gapi.project_page, workspace=ghack.gapi.workspace_page)
+
+
+@route("/")
+def home():
+    return render_template('home.html')
 
 
 @route("wip")

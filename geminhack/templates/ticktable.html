@@ -32,7 +32,10 @@
             <a href="{{ (ti['item_url']) }}" target="_blank">{{  ti["IssueKey"] }}</a>
         </td>
         <td>
-            {{ ti["Title"] }}
+            <button type="button" class="btn" data-toggle="popover" title="{{ ti['Title'] }}"
+                    data-content="{{ ti['BaseEntity']['Description'] }}" data-placement="right" data-html="true">
+                {{ ti['Title'] }}
+            </button>
         </td>
         <td>
             {{ ti['Responsible']['FormattedData'] }}
@@ -44,7 +47,10 @@
             {{ ti["Priority"] }}/{{ ti["Severity"].split(" ")[-1] }}
         </td>
         <td>
-            {{ ti["last_commenter"] }}
+            <button type="button" class="btn" data-toggle="popover" title="{{ ti['last_commenter'] }}"
+                    data-content="{{ ti['last_comment'] }}" data-placement="left" data-html="true">
+                {{ ti['last_commenter'] }}
+            </button>
         </td>
         <td>
             {{ ti["Revised"].split('T')[0] }}
