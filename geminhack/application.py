@@ -40,5 +40,11 @@ def tt_active():
     return render_ticktable(ghack, "Active", ghack.active)
 
 
+@route("waiting")
+def tt_waiting():
+    ghack = GeminHack(gapi)
+    return render_ticktable(ghack, "Waiting", ghack.responded)
+
+
 if __name__ == '__main__':
     app.run(debug=True, use_debugger=False, use_reloader=False, passthrough_errors=True)
