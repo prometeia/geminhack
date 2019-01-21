@@ -1,6 +1,6 @@
 from os import environ
 from flask import Flask, render_template
-from .geminlib import GeminAPI, GeminHack, last_commenter
+from .geminlib import GeminAPI, GeminHack
 
 app = Flask(__name__)
 api_auth = environ['GEMINI_API_AUTH'].split(':')

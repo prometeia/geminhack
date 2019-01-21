@@ -1,5 +1,9 @@
 import requests
 import json
+from requests_ntlm import HttpNtlmAuth
+from logging import getLogger
+
+log = getLogger(__name__)
 
 PYTHO_WORKSPACE_ID = 3116
 ESUP_PROJECT_ID = 46
@@ -36,14 +40,16 @@ class GeminAPI(object):
     def __init__(self, user, password, prjid=ESUP_PROJECT_ID, wsid=PYTHO_WORKSPACE_ID):
         self.prjid = prjid
         self.wsid = wsid
-        self.auth = user, password
+        self.auth = HttpNtlmAuth(user, password)
 
     def _apiuri(self, *vargs):
         return "/".join([self.base_uri + '/api'] + [str(x) for x in vargs])
 
     def get(self, *subs):
         uri = self._apiuri(*subs)
+        log.info("User %s requesting %s", self.auth, uri)
         ret = requests.get(uri, auth=self.auth)
+        log.debug("Resource %s returned %d", uri, ret.status_code)
         assert ret.status_code / 100 == 2
         return ret.json()
 

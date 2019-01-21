@@ -9,6 +9,7 @@ pylint = "*"
 [packages]
 flask = "*"
 requests = "*"
+requests-ntlm = "*"
 
 [requires]
 python_version = "3.6"
