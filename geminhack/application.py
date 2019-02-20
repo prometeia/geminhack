@@ -1,20 +1,48 @@
 from os import environ
-from flask import Flask, render_template
+from logging import getLogger, basicConfig, INFO
+from flask import Flask, render_template, request, Response, abort
 from .geminlib import GeminAPI, GeminHack
+from .memoizer import memoize
 
+COOKIENAME = 'geminhack'
+
+
+basicConfig(level=INFO)
+log = getLogger(__name__)
 app = Flask(__name__)
-api_auth = environ['GEMINI_API_AUTH'].split(':')
 contextroot = environ.get('CONTEXT_ROOT') or ''
-gapi = GeminAPI(*api_auth)
+
+FRESHARG = 'FRESH'
 
 
-def route(subpath):
-    return app.route('%s/%s' % (contextroot, subpath))
+@memoize(lifespan=60, fresharg='FRESH')
+def _create_ghack(username, password):
+    gapi = GeminAPI(username, password)
+    if not gapi.authenticated:
+        abort(Response('Invalid LDAP auth', 401, {'WWW-Authenticate': 'Basic realm="Login Required"'}))
+    return GeminHack(gapi)
+
+
+def authenticate():
+    auth = request.authorization
+    if not auth:
+        abort(Response('Required auth', 401, {'WWW-Authenticate': 'Basic realm="Login Required"'}))
+    kwargs = {
+        'username': auth.username,
+        'password': auth.password,
+        FRESHARG: request.headers.get('Cache-Control', '') == 'max-age=0'
+    }
+    return _create_ghack(**kwargs)
+
+
+def route(subpath, methods=None):
+    return app.route('%s/%s' % (contextroot, subpath), methods=(methods or ['GET']))
 
 
 def render_ticktable(ghack, title, rows):
     return render_template(
-        'ticktable.html', title=title, rows=rows, project_page=ghack.gapi.project_page, workspace=ghack.gapi.workspace_page)
+        'ticktable.html', home=contextroot, title=title, rows=rows, project_page=ghack.gapi.project_page,
+        workspace=ghack.gapi.workspace_page)
 
 
 @route("/")
@@ -24,25 +52,25 @@ def home():
 
 @route("wip")
 def tt_wip():
-    ghack = GeminHack(gapi)
+    ghack = authenticate()
     return render_ticktable(ghack, "WiP", ghack.wip)
 
 
 @route("all")
 def tt_all():
-    ghack = GeminHack(gapi)
+    ghack = authenticate()
     return render_ticktable(ghack, "All", ghack.tickets)
 
 
 @route("active")
 def tt_active():
-    ghack = GeminHack(gapi)
+    ghack = authenticate()
     return render_ticktable(ghack, "Active", ghack.active)
 
 
 @route("waiting")
 def tt_waiting():
-    ghack = GeminHack(gapi)
+    ghack = authenticate()
     return render_ticktable(ghack, "Waiting", ghack.responded)
 
 

@@ -35,6 +35,9 @@ def last_comment(tick):
 
 
 class GeminAPI(object):
+    """
+        https://docs.countersoft.com/rest-api/
+    """
     base_uri = "https://erm-swfactory.prometeia.com/Gemini"
 
     def __init__(self, user, password, prjid=ESUP_PROJECT_ID, wsid=PYTHO_WORKSPACE_ID):
@@ -50,8 +53,17 @@ class GeminAPI(object):
         log.info("User %s requesting %s", self.auth, uri)
         ret = requests.get(uri, auth=self.auth)
         log.debug("Resource %s returned %d", uri, ret.status_code)
-        assert ret.status_code / 100 == 2
+        if not ret.status_code / 100 == 2:
+            return
         return ret.json()
+
+    @property
+    def authenticated(self):
+        return bool(self.project)
+
+    @property
+    def project(self):
+        return self.get('projects', self.prjid)
 
     @property
     def workspace(self):
