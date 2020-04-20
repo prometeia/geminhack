@@ -1,11 +1,18 @@
 {% extends "base.html" %}
 {% block title %}{{ title }}{% endblock %}
 {% block content %}
-<h1>PYTHO's Gemini Tickets</h1>
+<h1>PYTHO's Gemini</h1>
+
+{% for key in ('ESUP', 'UAT') %} 
+
+<h2>{{key}}</h2>
 <ul>
-    <li><a href="wip">WIP</a></li>
-    <li><a href="waiting">Waiting</a></li>
-    <li><a href="active">Active</a></li>
-    <li><a href="all">All</a></li>
+    <li><a href="wip/{{key|lower}}">WIP</a></li>
+    <li><a href="waiting/{{key|lower}}">Waiting</a></li>
+    <li><a href="active/{{key|lower}}">Active</a></li>
+    <li><a href="all/{{key|lower}}">All</a></li>
 </ul>
+
+{%endfor%}
+
 {% endblock %}

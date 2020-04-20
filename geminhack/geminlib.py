@@ -5,9 +5,6 @@ from logging import getLogger
 
 log = getLogger(__name__)
 
-PYTHO_WORKSPACE_ID = 3116
-ESUP_PROJECT_ID = 46
-
 
 def jdump(data, where=None):
     todump = json.dumps(data, sort_keys=True, indent=2)
@@ -40,7 +37,7 @@ class GeminAPI(object):
     """
     base_uri = "https://erm-swfactory.prometeia.com/Gemini"
 
-    def __init__(self, user, password, prjid=ESUP_PROJECT_ID, wsid=PYTHO_WORKSPACE_ID):
+    def __init__(self, user, password, prjid, wsid):
         self.prjid = prjid
         self.wsid = wsid
         self.auth = HttpNtlmAuth(user, password)
@@ -113,7 +110,7 @@ class GeminHack(object):
         self._tickets = {bid: self.gapi.item(bid) for bid in self.gapi.badges}
         # TODO: Discover from gapi
         self.allofus = ["Luigi Curzi", "Denis Brandolini", "Glauco Uri", "Loredana Ribatto",
-                        "Matteo Gnudi", "Marco Montanari"]
+                        "Matteo Gnudi", "Alessio Durinzi"]
 
     @property
     def statuses(self):
