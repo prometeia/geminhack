@@ -1,18 +1,26 @@
 {% extends "base.html" %}
 {% block title %}{{ title }}{% endblock %}
 {% block content %}
-<h1>PYTHO's Gemini</h1>
 
-{% for key in ('ESUP', 'UAT') %} 
-
-<h2>{{key}}</h2>
-<ul>
-    <li><a href="wip/{{key|lower}}">WIP</a></li>
-    <li><a href="waiting/{{key|lower}}">Waiting</a></li>
-    <li><a href="active/{{key|lower}}">Active</a></li>
-    <li><a href="all/{{key|lower}}">All</a></li>
-</ul>
-
-{%endfor%}
-
+<div class="pricing-header px-3 py-3 pt-md-5 pb-md-4 mx-auto text-center">
+    <h1 class="display-4">Workspaces</h1>
+    <p class="lead">Quickly navigate GEMINI's custom workspaces.</p>
+</div>
+<div class="container">
+    <div class="card-deck mb-3 text-center">
+    {% for key in prefixes %} 
+      <div class="card mb-4 box-shadow">
+        <div class="card-header">
+          <h4 class="my-0 font-weight-normal">{{key}}</h4>
+        </div>
+        <div class="card-body">
+          <ul class="list-unstyled mt-3 mb-4">
+            <li><a href="all/{{key|lower}}">All</a></li>
+            <li><a href="waiting/{{key|lower}}">Waiting</a></li>
+          </ul>
+        </div>
+      </div>
+    {%endfor%}
+    </div>
+</div>
 {% endblock %}

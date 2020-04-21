@@ -1,9 +1,10 @@
 from os import environ
 from logging import getLogger, basicConfig, INFO
-from flask import Flask, render_template, request, Response, abort
+from flask import Flask, render_template, request, Response, abort, send_from_directory
 from .geminlib import GeminAPI, GeminHack
 from .memoizer import memoize
 
+PREFIXES = ('ESUP', 'UAT', 'RFF', 'DIR')
 
 basicConfig(level=INFO)
 log = getLogger(__name__)
@@ -12,10 +13,15 @@ app.config.from_mapping(
     SECRET_KEY='dev',
     CONTEXT_ROOT='/',
     COOKIE_NAME='geminhack',
+    GEMINI_URI="https://erm-swfactory.prometeia.com/Gemini",
     ESUP_PRJ_ID=46,
     ESUP_WS_ID=4236,
     UAT_PRJ_ID=37,
-    UAT_WS_ID=4295
+    UAT_WS_ID=4295,
+    RFF_PRJ_ID=39,
+    RFF_WS_ID=4281,
+    DIR_PRJ_ID=40,
+    DIR_WS_ID=4256
 )
 
 
@@ -24,7 +30,7 @@ def _create_ghack(username, password, confkey, FRESH=None):
     assert FRESH is None, "It should not come down"
     prjid = app.config['{}_PRJ_ID'.format(confkey)]
     wsid = app.config['{}_WS_ID'.format(confkey)]
-    gapi = GeminAPI(username, password, prjid=prjid, wsid=wsid)
+    gapi = GeminAPI(username, password, base_uri=app.config['GEMINI_URI'], prjid=prjid, wsid=wsid)
     if not gapi.authenticated:
         abort(Response('Invalid LDAP auth', 401, {'WWW-Authenticate': 'Basic realm="Login Required"'}))
     return GeminHack(gapi)
@@ -55,28 +61,35 @@ def render_ticktable(ghack, title, rows):
 
 @route("/")
 def home():
-    return render_template('home.html')
+    return render_template('home.html', prefixes=PREFIXES,
+                           home=app.config['CONTEXT_ROOT'],
+                           gemini=app.config['GEMINI_URI'])
+
+
+@route('statics/<path:path>')
+def send_statics(path):
+    return send_from_directory('statics', path)
 
 
 @route("wip/<key>")
 def tt_wip(key):
     ghack = get_hacker(key.upper())
-    return render_ticktable(ghack, "WiP", ghack.wip)
+    return render_ticktable(ghack, "{} WiP".format(key.upper()), ghack.wip)
 
 
 @route("all/<key>")
 def tt_all(key):
     ghack = get_hacker(key.upper())
-    return render_ticktable(ghack, "All", ghack.tickets)
+    return render_ticktable(ghack, "{} All".format(key.upper()), ghack.tickets)
 
 
 @route("active/<key>")
 def tt_active(key):
     ghack = get_hacker(key.upper())
-    return render_ticktable(ghack, "Active", ghack.active)
+    return render_ticktable(ghack, "{} Active".format(key.upper()), ghack.active)
 
 
 @route("waiting/<key>")
 def tt_waiting(key):
     ghack = get_hacker(key.upper())
-    return render_ticktable(ghack, "Waiting", ghack.responded)
+    return render_ticktable(ghack, "{} Waiting".format(key.upper()), ghack.responded)

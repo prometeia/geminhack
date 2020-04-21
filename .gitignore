@@ -115,5 +115,5 @@ dmypy.json
 .pyre/
 
 ### PROJECT
-.vscode/
+.vscode/settings.json
 .idea/

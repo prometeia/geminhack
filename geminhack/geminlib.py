@@ -1,5 +1,6 @@
 import requests
 import json
+import re
 from requests_ntlm import HttpNtlmAuth
 from logging import getLogger
 
@@ -24,22 +25,31 @@ def last_commenter(tick):
     return cms[0].get("BaseEntity", {}).get("Fullname") or ""
 
 
+def stripsignature(text):
+    splitters = [r'<br>\s*<br>\s*<img.*?width="159" height="51"', '<table']
+    for sp in splitters:
+        text = re.split(sp, text)[0]
+    text = re.sub(r'(<br>\s*)+', r'<br>\n', text)
+    return text
+
+
 def last_comment(tick):
     cms = tick["Comments"]
     if not cms:
         return ""
-    return cms[0].get("BaseEntity", {}).get("Comment") or ""
+    comment = cms[0].get("BaseEntity", {}).get("Comment") or ""
+    return stripsignature(comment)
 
 
 class GeminAPI(object):
     """
         https://docs.countersoft.com/rest-api/
     """
-    base_uri = "https://erm-swfactory.prometeia.com/Gemini"
 
-    def __init__(self, user, password, prjid, wsid):
+    def __init__(self, user, password, base_uri, prjid, wsid):
         self.prjid = prjid
         self.wsid = wsid
+        self.base_uri = base_uri
         self.auth = HttpNtlmAuth(user, password)
 
     def _apiuri(self, *vargs):
@@ -69,7 +79,7 @@ class GeminAPI(object):
     @property
     def badges(self):
         return self.workspace.get('CardData', {}).get('Badges', [])
-
+        
     def item(self, itemid, clean=True):
         ite = self.get("items", itemid) or {}
         if clean:
@@ -78,7 +88,7 @@ class GeminAPI(object):
 
     @property
     def project_page(self):
-        return self.get("projects", self.prjid).get("HomePageUrl", "")
+        return "/".join([self.base_uri, "project", str(self.prjid), "board"])
 
     @property
     def workspace_page(self):
@@ -98,6 +108,7 @@ class GeminAPI(object):
         ticket["last_commenter"] = last_commenter(ticket)
         ticket["last_comment"] = last_comment(ticket)
         ticket["item_url"] = self.item_url(ticket["Id"])
+        ticket["description"] = stripsignature(ticket['BaseEntity']["Description"])
         cfields = {t["Name"]: t for t in ticket.pop("CustomFields")}
         ticket.update(cfields)
         return ticket
@@ -158,7 +169,14 @@ if __name__ == '__main__':
     import os
     import sys
     import tempfile
-    gapi = GeminAPI(*sys.argv[1:3])
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument("username")
+    parser.add_argument("password")
+    parser.add_argument("prjid", type=int)
+    parser.add_argument("wsid", type=int)
+    args = parser.parse_args()
+    gapi = GeminAPI(args.username, args.password, args.prjid, args.wsid)
     ge = GeminHack(gapi)
     dwhere = tempfile.mkdtemp("export", "geminhack")
     print("Exporting issue in %s" % dwhere)
