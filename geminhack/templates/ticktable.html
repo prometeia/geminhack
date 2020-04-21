@@ -13,6 +13,9 @@
             Issue
         </th>
         <th>
+            Zube
+        </th>
+        <th>
             Title
         </th>
         <th>
@@ -35,6 +38,11 @@
     <tr>
         <td>
             <a href="{{ (ti['item_url']) }}" target="_blank">{{  ti["IssueKey"] }}</a>
+        </td>
+        <td>
+            {% for zid in ti['zubeids'] %}
+                {{ zid }}
+            {% endfor %}
         </td>
         <td>
             <button type="button" class="btn" title="{{ ti['Title'] }}"

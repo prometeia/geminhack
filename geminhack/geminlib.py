@@ -41,6 +41,15 @@ def last_comment(tick):
     return stripsignature(comment)
 
 
+def comments2zubeids(comments):
+    zuber = re.compile(r'ZUBE#(\d+)')
+    found = []
+    for comment in comments:
+        found.extend(int(n) for n in zuber.findall(comment['BaseEntity']['Comment']))
+    return sorted(set(found))
+
+
+
 class GeminAPI(object):
     """
         https://docs.countersoft.com/rest-api/
@@ -57,12 +66,21 @@ class GeminAPI(object):
 
     def get(self, *subs):
         uri = self._apiuri(*subs)
-        log.info("User %s requesting %s", self.auth, uri)
+        log.info("User %s getting %s", self.auth, uri)
         ret = requests.get(uri, auth=self.auth)
         log.debug("Resource %s returned %d", uri, ret.status_code)
         if not ret.status_code / 100 == 2:
             return
         return ret.json()
+
+    def post(self, dictdata, *subs):
+        uri = self._apiuri(*subs)
+        log.info("User %s posting %s", self.auth, uri)
+        ret = requests.post(uri, auth=self.auth, json=dictdata)
+        log.debug("Resource %s returned %d", uri, ret.status_code)
+        if not ret.status_code / 100 == 2:
+            return
+        return ret.json()        
 
     @property
     def authenticated(self):
@@ -97,6 +115,15 @@ class GeminAPI(object):
     def item_url(self, itemid):
         return "%s/workspace/%d/item/%d" % (self.base_uri, self.wsid, itemid)
 
+    def item_get_zube_ref(self, itemid, zubeid):
+        comments = self.get("items", str(itemid), "comments")
+        return comments2zubeids(comments)
+
+    def item_add_zube_ref(self, itemid, zubeid):
+        created = self.post({"IssueId": itemid, "Comment": f"ZUBE#{zubeid}"}, 
+                            "items", str(itemid), "comments")
+        return created
+
     def clean_item(self, item):
         """Remove and reformat fields"""
         ticket = item.copy()
@@ -109,6 +136,7 @@ class GeminAPI(object):
         ticket["last_comment"] = last_comment(ticket)
         ticket["item_url"] = self.item_url(ticket["Id"])
         ticket["description"] = stripsignature(ticket['BaseEntity']["Description"])
+        ticket["zubeids"] = comments2zubeids(ticket['Comments'])
         cfields = {t["Name"]: t for t in ticket.pop("CustomFields")}
         ticket.update(cfields)
         return ticket
@@ -116,8 +144,9 @@ class GeminAPI(object):
 
 class GeminHack(object):
 
-    def __init__(self, geminapi):
+    def __init__(self, geminapi, zubeapi):
         self.gapi = geminapi
+        self.zapi = zubeapi
         self._tickets = {bid: self.gapi.item(bid) for bid in self.gapi.badges}
         # TODO: Discover from gapi
         self.allofus = ["Luigi Curzi", "Denis Brandolini", "Glauco Uri", "Loredana Ribatto",
@@ -176,7 +205,8 @@ if __name__ == '__main__':
     parser.add_argument("prjid", type=int)
     parser.add_argument("wsid", type=int)
     args = parser.parse_args()
-    gapi = GeminAPI(args.username, args.password, args.prjid, args.wsid)
+    gapi = GeminAPI(args.username, args.password, "https://erm-swfactory.prometeia.com/Gemini", 
+                    args.prjid, args.wsid)
     ge = GeminHack(gapi)
     dwhere = tempfile.mkdtemp("export", "geminhack")
     print("Exporting issue in %s" % dwhere)

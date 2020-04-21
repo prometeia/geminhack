@@ -3,6 +3,7 @@ from logging import getLogger, basicConfig, INFO
 from flask import Flask, render_template, request, Response, abort, send_from_directory
 from .geminlib import GeminAPI, GeminHack
 from .memoizer import memoize
+from .zubelib import ZubeAPI, private_key_from_pem
 
 PREFIXES = ('ESUP', 'UAT', 'RFF', 'DIR')
 
@@ -21,11 +22,13 @@ app.config.from_mapping(
     RFF_PRJ_ID=39,
     RFF_WS_ID=4281,
     DIR_PRJ_ID=40,
-    DIR_WS_ID=4256
+    DIR_WS_ID=4256,
+    ZUBE_PEM="zube_api_key.pem",
+    ZUBE_CLIENT_ID="951b3e3e-83bd-11ea-ab20-cbd5058a8766"
 )
 
 
-@memoize(lifespan=60, fresharg='FRESH')
+@memoize(lifespan=30, fresharg='FRESH')
 def _create_ghack(username, password, confkey, FRESH=None):
     assert FRESH is None, "It should not come down"
     prjid = app.config['{}_PRJ_ID'.format(confkey)]
@@ -33,7 +36,8 @@ def _create_ghack(username, password, confkey, FRESH=None):
     gapi = GeminAPI(username, password, base_uri=app.config['GEMINI_URI'], prjid=prjid, wsid=wsid)
     if not gapi.authenticated:
         abort(Response('Invalid LDAP auth', 401, {'WWW-Authenticate': 'Basic realm="Login Required"'}))
-    return GeminHack(gapi)
+    zapi = ZubeAPI(app.config['ZUBE_CLIENT_ID'], private_key_from_pem(app.config['ZUBE_PEM']))
+    return GeminHack(gapi, zapi)
 
 
 def get_hacker(confkey='ESUP'):

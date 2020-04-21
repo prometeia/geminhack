@@ -117,3 +117,6 @@ dmypy.json
 ### PROJECT
 .vscode/settings.json
 .idea/
+
+### KEYFILES
+*.pem
