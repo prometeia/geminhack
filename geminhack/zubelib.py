@@ -51,3 +51,20 @@ class ZubeAPI(object):
         if not ret.status_code / 100 == 2:
             return
         return ret.json()
+
+    def post(self, jsonbody, *subs):
+        uri = "/".join([self.base_uri + '/api'] + [str(x) for x in subs])
+        headers = self._access_headers.copy()
+        ret = requests.post(uri, json=jsonbody, headers=headers)
+        if not ret.status_code / 100 == 2:
+            return
+        return ret.json()     
+
+    def get_card(self, number):
+        cards = (self.get(f'cards?where[number]={number}') or {}).get('data')
+        if not cards:
+            return {}
+        return cards[0]
+
+    def create_card(self, project_id, title, body):
+        return self.post(dict(project_id=project_id, title=title, body=body), 'cards')

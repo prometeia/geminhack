@@ -1,9 +1,10 @@
 from os import environ
 from logging import getLogger, basicConfig, INFO
 from flask import Flask, render_template, request, Response, abort, send_from_directory
-from .geminlib import GeminAPI, GeminHack
 from .memoizer import memoize
+from .geminlib import GeminAPI
 from .zubelib import ZubeAPI, private_key_from_pem
+from .geminhack import GeminHack
 
 PREFIXES = ('ESUP', 'UAT', 'RFF', 'DIR')
 
@@ -24,7 +25,8 @@ app.config.from_mapping(
     DIR_PRJ_ID=40,
     DIR_WS_ID=4256,
     ZUBE_PEM="zube_api_key.pem",
-    ZUBE_CLIENT_ID="951b3e3e-83bd-11ea-ab20-cbd5058a8766"
+    ZUBE_CLIENT_ID="951b3e3e-83bd-11ea-ab20-cbd5058a8766",
+    ZUBE_PRJ_ID=15973
 )
 
 
@@ -40,7 +42,7 @@ def _create_ghack(username, password, confkey, FRESH=None):
     return GeminHack(gapi, zapi)
 
 
-def get_hacker(confkey='ESUP'):
+def get_hacker(confkey='ESUP') -> GeminHack:
     auth = request.authorization
     if not auth:
         abort(Response('Required auth', 401, {'WWW-Authenticate': 'Basic realm="Login Required"'}))
@@ -97,3 +99,39 @@ def tt_active(key):
 def tt_waiting(key):
     ghack = get_hacker(key.upper())
     return render_ticktable(ghack, "{} Waiting".format(key.upper()), ghack.responded)
+
+
+@route("items/<key>/<itemid>", ['GET', 'POST'])
+def get_zube_refs(key, itemid):
+    itemid = int(itemid)
+    ghack = get_hacker(key.upper())
+    item = ghack.gapi.get_item(itemid)
+    if not item:
+        abort(404)
+    if request.method == 'GET':
+        return {cardid:ghack.zapi.get_card(cardid) for cardid in item['zubeids']}
+    if request.method != 'POST':
+        abort(405)
+    if item['zubeids']:
+        return {}, 200
+    # TODO: creare zube da gemini
+    body = item['description'] + f"\n\n{key.upper()}-{itemid}"
+    zubecard = ghack.zapi.create_card(app.config['ZUBE_PRJ_ID'], item['Title'], body)
+    if not zubecard:
+        abort(500)
+    return ghack.gapi.item_add_zube_ref(itemid, zubecard['number'])
+
+@route("items/<key>/<itemid>/<zubeid>", ['PUT'])
+def add_zube_ref(key, itemid, zubeid):
+    itemid = int(itemid)
+    zubeid = int(zubeid)
+    ghack = get_hacker(key.upper())
+    item = ghack.gapi.get_item(itemid)
+    if not item:
+        abort(404)
+    if zubeid in item['zubeids']:
+        return {}, 200
+    zubecard = ghack.zapi.get_card(zubeid)
+    if not zubecard:
+        abort(404)
+    return ghack.gapi.item_add_zube_ref(itemid, zubeid), 201
