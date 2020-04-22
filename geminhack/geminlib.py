@@ -1,6 +1,7 @@
 import requests
 import json
 import re
+from functools import cached_property
 from requests_ntlm import HttpNtlmAuth
 from logging import getLogger
 
@@ -72,17 +73,17 @@ class GeminAPI(object):
 
     @property
     def authenticated(self):
-        return bool(self.project)
+        return bool(self.workspace)
 
-    @property
+    @cached_property
     def project(self):
         return self.get('projects', self.prjid)
 
-    @property
+    @cached_property
     def workspace(self):
         return self.get("navigationcards", self.wsid) or {}
 
-    @property
+    @cached_property
     def badges(self):
         return self.workspace.get('CardData', {}).get('Badges', [])
         
@@ -92,11 +93,11 @@ class GeminAPI(object):
             ite = self.clean_item(ite)
         return ite
 
-    @property
+    @cached_property
     def project_page(self):
         return "/".join([self.base_uri, "project", str(self.prjid), "board"])
 
-    @property
+    @cached_property
     def workspace_page(self):
         return "/".join([self.base_uri, "workspace", str(self.wsid), "items"])
 
