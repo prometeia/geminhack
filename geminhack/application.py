@@ -18,10 +18,13 @@ app.config.from_mapping(
     GEMINI_URI="https://erm-swfactory.prometeia.com/Gemini",
     ESUP_PRJ_ID=46,
     ESUP_WS_ID=4236,
+    ESUP_ZUBE_LABEL_ID=181120,
     UAT_PRJ_ID=37,
     UAT_WS_ID=4295,
+    UAT_ZUBE_LABEL_ID=243959,
     RFF_PRJ_ID=39,
     RFF_WS_ID=4281,
+    RFF_ZUBE_LABEL_ID=224740,
     DIR_PRJ_ID=40,
     DIR_WS_ID=4256,
     ZUBE_PEM="zube_api_key.pem",
@@ -30,9 +33,7 @@ app.config.from_mapping(
 )
 
 
-@memoize(lifespan=30, fresharg='FRESH')
 def _create_ghack(username, password, confkey, FRESH=None):
-    assert FRESH is None, "It should not come down"
     prjid = app.config['{}_PRJ_ID'.format(confkey)]
     wsid = app.config['{}_WS_ID'.format(confkey)]
     gapi = GeminAPI(username, password, base_uri=app.config['GEMINI_URI'], prjid=prjid, wsid=wsid)
@@ -49,8 +50,7 @@ def get_hacker(confkey='ESUP') -> GeminHack:
     kwargs = {
         'username': auth.username,
         'password': auth.password,
-        'confkey': confkey,
-        'FRESH': request.headers.get('Cache-Control', '') == 'max-age=0'
+        'confkey': confkey
     }
     return _create_ghack(**kwargs)
 
@@ -116,10 +116,14 @@ def get_zube_refs(key, itemid):
         return {}, 200
     # TODO: creare zube da gemini
     body = item['description'] + f"\n\n{key.upper()}-{itemid}"
-    zubecard = ghack.zapi.create_card(app.config['ZUBE_PRJ_ID'], item['Title'], body)
+    zubecard = ghack.zapi.create_card(app.config['ZUBE_PRJ_ID'], item['Title'], body, app.config.get(f'{key.upper()}_ZUBE_LABEL_ID'))
     if not zubecard:
         abort(500)
-    return ghack.gapi.item_add_zube_ref(itemid, zubecard['number'])
+    data = ghack.gapi.item_add_zube_ref(itemid, zubecard['number'])
+    if request.referrer:
+        return redirect(request.referrer, code=302)
+    else:
+        return data, 201
 
 @route("items/<key>/<itemid>/<zubeid>", ['PUT'])
 def add_zube_ref(key, itemid, zubeid):
@@ -134,4 +138,8 @@ def add_zube_ref(key, itemid, zubeid):
     zubecard = ghack.zapi.get_card(zubeid)
     if not zubecard:
         abort(404)
-    return ghack.gapi.item_add_zube_ref(itemid, zubeid), 201
+    data = ghack.gapi.item_add_zube_ref(itemid, zubeid)
+    if request.referrer:
+        return redirect(request.referrer, code=302)
+    else:
+        return data

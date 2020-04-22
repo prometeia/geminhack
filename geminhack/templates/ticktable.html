@@ -19,7 +19,7 @@
             Title
         </th>
         <th>
-            Responsible
+            Assignees
         </th>
         <th>
             Status
@@ -37,21 +37,26 @@
     {% for ti in rows %}
     <tr>
         <td>
-            <a href="{{ (ti['item_url']) }}" target="_blank">{{  ti["IssueKey"] }}</a>
+            <a href="{{ (ti['item_url']) }}" target="_blank">{{ ti["IssueKey"] }}</a>
         </td>
         <td>
-            {% for zid in ti['zubeids'] %}
-                {{ zid }}
-            {% endfor %}
+            {% if ti['zubeids'] %}
+                {% for zid in ti['zubeids'] %}
+                    {{ zid }}
+                {% endfor %}
+            {% else %}
+                <form action="{{home}}items/{{ti['IssueKey'].replace('-', '/')}}" method="POST">
+                    <button type="submit" class="btn btn-primary">Create</button>
+                </form>
+            {% endif %}
         </td>
         <td>
-            <button type="button" class="btn" title="{{ ti['Title'] }}"
-                    data-tippy-content="{{ ti['description'] }}" >
+            <span data-tippy-content="{{ ti['description'] }}" >
                 {{ ti['Title'] }}
-            </button>
+            </span>
         </td>
         <td>
-            {{ ti.get('Responsible', {}).get('FormattedData') or '' }}
+            {{ ti.get('Responsible', {}).get('FormattedData') or ti.get('risorse') or '' }}
         </td>
         <td>
             {{ ti["Status"] }}
@@ -60,10 +65,9 @@
             {{ ti["Priority"] }}/{{ ti["Severity"].split(" ")[-1] }}
         </td>
         <td>
-            <button type="button" class="btn" title="{{ ti['last_commenter'] }}"
-                    data-tippy-content="{{ ti['last_comment'] }}">
+            <span data-tippy-content="{{ ti['last_comment'] }}">
                 {{ ti['last_commenter'] }}
-            </button>
+            </span>
         </td>
         <td>
             {{ ti["Revised"].split('T')[0] }}

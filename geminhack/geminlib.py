@@ -125,6 +125,7 @@ class GeminAPI(object):
         ticket["item_url"] = self.item_url(ticket["Id"])
         ticket["description"] = stripsignature(ticket['BaseEntity']["Description"])
         ticket["zubeids"] = comments2zubeids(ticket['Comments'])
+        ticket['risorse'] = ', '.join([t['Fullname'] for t in ticket.get('Resources', [])])
         cfields = {t["Name"]: t for t in ticket.pop("CustomFields")}
         ticket.update(cfields)
         return ticket

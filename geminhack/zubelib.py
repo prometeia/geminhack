@@ -66,5 +66,8 @@ class ZubeAPI(object):
             return {}
         return cards[0]
 
-    def create_card(self, project_id, title, body):
-        return self.post(dict(project_id=project_id, title=title, body=body), 'cards')
+    def create_card(self, project_id, title, body, label=None):
+        data = dict(project_id=project_id, title=title, body=body)
+        if label:
+            data['label_ids'] = [label]
+        return self.post(data, 'cards')
