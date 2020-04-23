@@ -101,6 +101,9 @@ class GeminAPI(object):
     def workspace_page(self):
         return "/".join([self.base_uri, "workspace", str(self.wsid), "items"])
 
+    def get_item_web_uri(self, itemid):
+        return f"{self.base_uri}/workspace/{self.wsid}/item/{itemid}"
+
     def item_url(self, itemid):
         return "%s/workspace/%d/item/%d" % (self.base_uri, self.wsid, itemid)
 

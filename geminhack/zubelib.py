@@ -1,6 +1,7 @@
 import jwt
 import datetime
 import requests
+from urllib.parse import urlparse
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 
@@ -25,12 +26,20 @@ def decode_jwt(jwt_token, public_key=None, verify=False):
 
 class ZubeAPI(object):
 
-    def __init__(self, client_id, private_key, base_uri="https://zube.io"):
+    def __init__(self, client_id, private_key, project_uri="https://zube.io/prometeia/pytho-suite"):
         self.client_id = client_id
         self.private_key = private_key
-        self.base_uri = base_uri
+        self.project_uri = project_uri
         self._access_headers = self.create_access_token(self.client_id, self.private_key)
 
+    @property
+    def base_uri(self):
+        pju = urlparse(self.project_uri)
+        return f"{pju.scheme}://{pju.netloc}"
+
+    def get_card_uri(self, number):
+        return f"{self.project_uri}/c/{number}"
+        
     def create_access_token(self, client_id, private_key):
         client_id, jwt_ticket = refresh_jwt(client_id, private_key)
         headers = {

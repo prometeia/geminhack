@@ -42,11 +42,11 @@
         <td>
             {% if ti['zubeids'] %}
                 {% for zid in ti['zubeids'] %}
-                    {{ zid }}
+                    <a href="{{zubeprojecturi}}/c/{{zid}}" target="zube">#{{ zid }}</a>
                 {% endfor %}
             {% else %}
                 <form action="{{home}}items/{{ti['IssueKey'].replace('-', '/')}}" method="POST">
-                    <button type="submit" class="btn btn-primary">Create</button>
+                    <button type="submit" class="btn btn-primary">Clone</button>
                 </form>
             {% endif %}
         </td>

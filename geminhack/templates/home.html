@@ -17,6 +17,38 @@
           <ul class="list-unstyled mt-3 mb-4">
             <li><a href="all/{{key|lower}}">All</a></li>
             <li><a href="waiting/{{key|lower}}">Waiting</a></li>
+            <li><hr></li>
+            <li>
+              <form>
+                <div class="form-row">
+                  <div class="col">
+                    <input type="text" class="form-control form-control-sm" id="{{key}}_issuenum" placeholder="123456"/>
+                  </div>
+                  <div class="col">
+                    <button id="{{key}}_button" class="btn btn-outline-primary btn-sm">Clone</button>
+                  </div>
+                </div>
+              </form>
+              <script>
+                $(function () {
+                  $('#{{key}}_button').click(function (event) {
+                    if ($('#{{key}}_issuenum').val() == "") {                      
+                      event.preventDefault();
+                      return
+                    }
+                    var posturi = '{{home}}items/{{key|upper}}/' + $('#{{key}}_issuenum').val();
+                    $('#{{key}}_button').prop('disabled', true)
+                    $('#{{key}}_issuenum').val('');
+                    console.log(posturi);
+                    $.post(posturi, {}, function () {
+                        $(window.location).attr('href', 'all/{{key|lower}}');
+                      }
+                    );
+                    event.preventDefault();
+                  });
+                });
+              </script>
+            </li>
           </ul>
         </div>
       </div>
