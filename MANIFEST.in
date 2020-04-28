@@ -1,0 +1,3 @@
+include geminhack/static
+graft geminhack/templates
+global-exclude *.pyc

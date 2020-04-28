@@ -1,18 +1,25 @@
 {% extends "base.html" %}
 {% block title %}{{ title }}{% endblock %}
 {% block content %}
-<h1><a href="{{ home }}">GeminHack</a> --
-    <a href="{{ workspace }}">PYTHO</a> {{ title }} <a href="{{ project_page }}" target="_blank">tickets</a></h1>
+<h5>
+    {{title}}: 
+    <a href="{{ workspace }}" target="workspace">workspace</a> 
+    and 
+    <a href="{{ project_page }}" target="project">project</a>
+</h5>
 <table class="table table-striped">
     <tr>
         <th>
             Issue
         </th>
         <th>
+            Zube
+        </th>
+        <th>
             Title
         </th>
         <th>
-            Responsible
+            Assignees
         </th>
         <th>
             Status
@@ -30,16 +37,26 @@
     {% for ti in rows %}
     <tr>
         <td>
-            <a href="{{ (ti['item_url']) }}" target="_blank">{{  ti["IssueKey"] }}</a>
+            <a href="{{ (ti['item_url']) }}" target="_blank">{{ ti["IssueKey"] }}</a>
         </td>
         <td>
-            <button type="button" class="btn" data-toggle="popover" title="{{ ti['Title'] }}"
-                    data-content="{{ ti['BaseEntity']['Description'] }}" data-placement="right" data-html="true">
+            {% if ti['zubeids'] %}
+                {% for zid in ti['zubeids'] %}
+                    <a href="{{zubeprojecturi}}/c/{{zid}}" target="zube">#{{ zid }}</a>
+                {% endfor %}
+            {% else %}
+                <form action="{{home}}items/{{ti['IssueKey'].replace('-', '/')}}" method="POST">
+                    <button type="submit" class="btn btn-primary">Clone</button>
+                </form>
+            {% endif %}
+        </td>
+        <td>
+            <span data-tippy-content="{{ ti['description'] }}" >
                 {{ ti['Title'] }}
-            </button>
+            </span>
         </td>
         <td>
-            {{ ti['Responsible']['FormattedData'] }}
+            {{ ti.get('Responsible', {}).get('FormattedData') or ti.get('risorse') or '' }}
         </td>
         <td>
             {{ ti["Status"] }}
@@ -48,10 +65,9 @@
             {{ ti["Priority"] }}/{{ ti["Severity"].split(" ")[-1] }}
         </td>
         <td>
-            <button type="button" class="btn" data-toggle="popover" title="{{ ti['last_commenter'] }}"
-                    data-content="{{ ti['last_comment'] }}" data-placement="left" data-html="true">
+            <span data-tippy-content="{{ ti['last_comment'] }}">
                 {{ ti['last_commenter'] }}
-            </button>
+            </span>
         </td>
         <td>
             {{ ti["Revised"].split('T')[0] }}
