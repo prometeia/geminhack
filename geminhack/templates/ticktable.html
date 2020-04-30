@@ -45,9 +45,19 @@
                     <a href="{{zubeprojecturi}}/c/{{zid}}" target="zube">#{{ zid }}</a>
                 {% endfor %}
             {% else %}
+                {% set foundthese = zubesearcher(ti["IssueKey"]) %}
+                {% if foundthese %}
+                    {% for found in zubesearcher(ti["IssueKey"]) %}
+                        <form action="{{home}}items/{{ti['IssueKey'].replace('-', '/')}}/{{found['number']}}" method="POST">
+                            <button type="submit" class="btn btn-primary">Link</button>
+                            <a href="{{zubeprojecturi}}/c/{{found['number']}}" target="zube" title="{{found['title']}}">#{{ found['number'] }}</a>                            
+                        </form>
+                    {% endfor %}
+                {% else %}
                 <form action="{{home}}items/{{ti['IssueKey'].replace('-', '/')}}" method="POST">
                     <button type="submit" class="btn btn-primary">Clone</button>
                 </form>
+                {% endif %}
             {% endif %}
         </td>
         <td>
