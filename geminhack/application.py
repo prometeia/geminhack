@@ -27,7 +27,7 @@ app.config.from_mapping(
     ERMRFF_ZUBE_LABEL_ID=224740,
     ERMDIR_PRJ_ID=40,
     ERMDIR_WS_ID=4256,
-    ZUBE_PEM="C:\\github\\prometeia\\geminhack\\zube_api_key.pem",
+    ZUBE_PEM="zube_api_key.pem",
     ZUBE_CLIENT_ID="951b3e3e-83bd-11ea-ab20-cbd5058a8766",
     ZUBE_PRJ_ID=15973,
     ZUBE_PRJ_URI="https://zube.io/prometeia/pytho-suite",
