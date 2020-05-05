@@ -84,7 +84,8 @@ class GeminAPI(object):
         return self.get("navigationcards", self.wsid) or {}
 
     def search_items(self):
-        return self.post(self.workspace.get('Filter'), 'items', 'filtered')
+        for item in self.post(self.workspace.get('Filter'), 'items', 'filtered'):
+            yield self.clean_item(item)
 
     @cached_property
     def badges(self):

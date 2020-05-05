@@ -68,7 +68,8 @@ class GeminHack(object):
 
     @cached_property
     def entire_workspace(self):
-        return self.gapi.search_items()
+        items = self.gapi.search_items()
+        return list(items)
 
     @property
     def wip(self):
