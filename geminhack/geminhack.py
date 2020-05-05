@@ -2,6 +2,7 @@ import requests
 import json
 import re
 import threading
+from functools import cached_property
 from requests_ntlm import HttpNtlmAuth
 from logging import getLogger
 from .geminlib import last_commenter, GeminAPI
@@ -64,6 +65,10 @@ class GeminHack(object):
     @property
     def active(self):
         return self._notinstatus('closed')
+
+    @cached_property
+    def entire_workspace(self):
+        return self.gapi.search_items()
 
     @property
     def wip(self):

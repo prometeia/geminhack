@@ -97,6 +97,12 @@ def tt_all(key):
     return render_ticktable(ghack, "{} All".format(key.upper()), ghack.tickets)
 
 
+@route("workspace/<key>")
+def tt_workspace(key):
+    ghack = get_hacker(key.upper())
+    return render_ticktable(ghack, "{} All".format(key.upper()), ghack.entire_workspace) 
+
+
 @route("active/<key>")
 def tt_active(key):
     ghack = get_hacker(key.upper())
