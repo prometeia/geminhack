@@ -6,7 +6,7 @@ from .geminlib import GeminAPI
 from .zubelib import ZubeAPI, private_key_from_pem
 from .geminhack import GeminHack
 
-PREFIXES = ('ESUP', 'UAT', 'ERMRFF', 'ERMDIR')
+PREFIXES = ('ESUP', 'UAT', 'ERMRFF', 'ERMDIR', 'ERM')
 
 basicConfig(level=INFO)
 log = getLogger(__name__)
@@ -30,7 +30,10 @@ app.config.from_mapping(
     ZUBE_PEM="zube_api_key.pem",
     ZUBE_CLIENT_ID="951b3e3e-83bd-11ea-ab20-cbd5058a8766",
     ZUBE_PRJ_ID=15973,
-    ZUBE_PRJ_URI="https://zube.io/prometeia/pytho-suite"
+    ZUBE_PRJ_URI="https://zube.io/prometeia/pytho-suite",
+    ERM_PRJ_ID=36,
+    ERM_WS_ID=4524,
+    ERM_ZUBE_LABEL_ID=248440,
 )
 
 
@@ -42,7 +45,8 @@ def _create_ghack(username, password, confkey, FRESH=None):
         abort(Response('Invalid LDAP auth', 401, {'WWW-Authenticate': 'Basic realm="Login Required"'}))
     zapi = ZubeAPI(
         app.config['ZUBE_CLIENT_ID'],
-        private_key_from_pem(app.config['ZUBE_PEM']), 
+        private_key_from_pem(app.config['ZUBE_PEM']),
+        app.config['ZUBE_PRJ_ID'],
         app.config['ZUBE_PRJ_URI'])
     return GeminHack(gapi, zapi)
 
@@ -66,7 +70,7 @@ def route(subpath, methods=None):
 def render_ticktable(ghack, title, rows):
     return render_template(
         'ticktable.html', home=app.config['CONTEXT_ROOT'], title=title, rows=rows, project_page=ghack.gapi.project_page,
-        workspace=ghack.gapi.workspace_page, zubeprojecturi=ghack.zapi.project_uri)
+        workspace=ghack.gapi.workspace_page, zubeprojecturi=ghack.zapi.project_uri, zubesearcher=ghack.zapi.search_cards)
 
 
 @route("/")
@@ -91,6 +95,12 @@ def tt_wip(key):
 def tt_all(key):
     ghack = get_hacker(key.upper())
     return render_ticktable(ghack, "{} All".format(key.upper()), ghack.tickets)
+
+
+@route("workspace/<key>")
+def tt_workspace(key):
+    ghack = get_hacker(key.upper())
+    return render_ticktable(ghack, "{} All".format(key.upper()), ghack.entire_workspace) 
 
 
 @route("active/<key>")
@@ -123,7 +133,7 @@ def get_zube_refs(key, itemid):
     itemuri = ghack.gapi.get_item_web_uri(itemid)
     body = item['description'] + f"\n\n---\n\n[{key}-{itemid}]({itemuri})"
     label = app.config.get(f'{key}_ZUBE_LABEL_ID')
-    zubecard = ghack.zapi.create_card(app.config['ZUBE_PRJ_ID'], title, body, label)
+    zubecard = ghack.zapi.create_card(title, body, label)
     if not zubecard:
         abort(500)
     data = ghack.gapi.item_add_zube_ref(itemid, zubecard['number'])
@@ -132,7 +142,7 @@ def get_zube_refs(key, itemid):
     else:
         return data, 201
 
-@route("items/<key>/<itemid>/<zubeid>", ['PUT'])
+@route("items/<key>/<itemid>/<zubeid>", ['POST'])
 def add_zube_ref(key, itemid, zubeid):
     itemid = int(itemid)
     zubeid = int(zubeid)

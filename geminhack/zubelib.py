@@ -26,10 +26,11 @@ def decode_jwt(jwt_token, public_key=None, verify=False):
 
 class ZubeAPI(object):
 
-    def __init__(self, client_id, private_key, project_uri="https://zube.io/prometeia/pytho-suite"):
+    def __init__(self, client_id, private_key, project_id, project_uri="https://zube.io/prometeia/pytho-suite"):
         self.client_id = client_id
         self.private_key = private_key
         self.project_uri = project_uri
+        self.project_id = project_id
         self._access_headers = self.create_access_token(self.client_id, self.private_key)
 
     @property
@@ -75,8 +76,12 @@ class ZubeAPI(object):
             return {}
         return cards[0]
 
-    def create_card(self, project_id, title, body, label=None):
-        data = dict(project_id=project_id, title=title, body=body)
+    def search_cards(self, search=""):
+        cards = self.get('projects', self.project_id, f'cards?search={search}&select[]=title&&select[]=number') or {}
+        return cards.get('data')
+
+    def create_card(self, title, body, label=None):
+        data = dict(project_id=self.project_id, title=title, body=body)
         if label:
             data['label_ids'] = [label]
         return self.post(data, 'cards')
