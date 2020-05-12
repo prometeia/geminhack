@@ -1,88 +1,95 @@
 {% extends "base.html" %}
 {% block title %}{{ title }}{% endblock %}
 {% block content %}
-<h5>
-    {{title}}: 
-    <a href="{{ workspace }}" target="workspace">workspace</a> 
-    and 
-    <a href="{{ project_page }}" target="project">project</a>
-</h5>
-<table class="table table-striped">
-    <tr>
-        <th>
-            Issue
-        </th>
-        <th>
-            Zube
-        </th>
-        <th>
-            Title
-        </th>
-        <th>
-            Assignees
-        </th>
-        <th>
-            Status
-        </th>
-        <th>
-            Priority/Severity
-        </th>
-        <th>
-            Last commenter
-        </th>
-        <th>
-            Revised
-        </th>
-    </tr>
-    {% for ti in rows %}
-    <tr>
-        <td>
-            <a href="{{ (ti['item_url']) }}" target="_blank">{{ ti["IssueKey"] }}</a>
-        </td>
-        <td>
-            {% if ti['zubeids'] %}
-                {% for zid in ti['zubeids'] %}
-                    <a href="{{zubeprojecturi}}/c/{{zid}}" target="zube">#{{ zid }}</a>
-                {% endfor %}
-            {% else %}
-                {% set foundthese = zubesearcher(ti["IssueKey"]) %}
-                {% if foundthese %}
-                    {% for found in zubesearcher(ti["IssueKey"]) %}
-                        <form action="{{home}}items/{{ti['IssueKey'].replace('-', '/')}}/{{found['number']}}" method="POST">
-                            <button type="submit" class="btn btn-primary">Link</button>
-                            <a href="{{zubeprojecturi}}/c/{{found['number']}}" target="zube" title="{{found['title']}}">#{{ found['number'] }}</a>                            
-                        </form>
+<div class="container-fluid">
+    <form class="form-inline" method="GET">
+        <a href="{{ project_page }}" target="project">{{title}}</a>
+        &nbsp;on&nbsp;
+        <a href="{{ workspace }}" target="workspace">workspace</a>
+        &nbsp;
+        <input name="wsid" type="text" class="form-control form-control-sm" value="{{workspaceid}}" size=6 />
+        &nbsp;
+        <button type="submit" class="btn btn-outline-primary btn-sm">Change</button>
+    </form>
+</div>
+<div class="container-fluid">
+    <table class="table table-striped">
+        <tr>
+            <th>
+                Issue
+            </th>
+            <th>
+                Zube
+            </th>
+            <th>
+                Title
+            </th>
+            <th>
+                Assignees
+            </th>
+            <th>
+                Status
+            </th>
+            <th>
+                Priority/Severity
+            </th>
+            <th class="text-nowrap">
+                Last commenter
+            </th>
+            <th>
+                Revised
+            </th>
+        </tr>
+        {% for ti in rows %}
+        <tr>
+            <td>
+                <a href="{{ (ti['item_url']) }}" target="_blank">{{ ti["IssueKey"] }}</a>
+            </td>
+            <td>
+                {% if ti['zubeids'] %}
+                    {% for zid in ti['zubeids'] %}
+                        <a href="{{zubeprojecturi}}/c/{{zid}}" target="zube">#{{ zid }}</a>
                     {% endfor %}
                 {% else %}
-                <form action="{{home}}items/{{ti['IssueKey'].replace('-', '/')}}" method="POST">
-                    <button type="submit" class="btn btn-primary">Clone</button>
-                </form>
+                    {% set foundthese = zubesearcher(ti["IssueKey"]) %}
+                    {% if foundthese %}
+                        {% for found in zubesearcher(ti["IssueKey"]) %}
+                            <form action="{{home}}items/{{ti['IssueKey'].replace('-', '/')}}/{{found['number']}}" method="POST">
+                                <button type="submit" class="btn btn-primary">Link</button>
+                                <a href="{{zubeprojecturi}}/c/{{found['number']}}" target="zube" title="{{found['title']}}">#{{ found['number'] }}</a>                            
+                            </form>
+                        {% endfor %}
+                    {% else %}
+                    <form action="{{home}}items/{{ti['IssueKey'].replace('-', '/')}}" method="POST">
+                        <button type="submit" class="btn btn-primary">Clone</button>
+                    </form>
+                    {% endif %}
                 {% endif %}
-            {% endif %}
-        </td>
-        <td>
-            <span data-tippy-content="{{ ti['description'] }}" >
-                {{ ti['Title'] }}
-            </span>
-        </td>
-        <td>
-            {{ ti.get('Responsible', {}).get('FormattedData') or ti.get('risorse') or '' }}
-        </td>
-        <td>
-            {{ ti["Status"] }}
-        </td>
-        <td>
-            {{ ti["Priority"] }}/{{ ti["Severity"].split(" ")[-1] }}
-        </td>
-        <td>
-            <span data-tippy-content="{{ ti['last_comment'] }}">
-                {{ ti['last_commenter'] }}
-            </span>
-        </td>
-        <td>
-            {{ ti["Revised"].split('T')[0] }}
-        </td>
-    </tr>
-    {% endfor %}
-</table>
+            </td>
+            <td>
+                <span data-tippy-content="{{ ti['description'] }}" >
+                    {{ ti['Title'] }}
+                </span>
+            </td>
+            <td>
+                {{ ti.get('Responsible', {}).get('FormattedData') or ti.get('risorse') or '' }}
+            </td>
+            <td>
+                {{ ti["Status"] }}
+            </td>
+            <td>
+                {{ ti["Priority"] }}/{{ ti["Severity"].split(" ")[-1] }}
+            </td>
+            <td>
+                <span data-tippy-content="{{ ti['last_comment'] }}">
+                    {{ ti['last_commenter'] }}
+                </span>
+            </td>
+            <td>
+                {{ ti["Revised"].split('T')[0] }}
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
 {% endblock %}

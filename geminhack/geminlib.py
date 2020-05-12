@@ -75,7 +75,7 @@ class GeminAPI(object):
 
     @property
     def authenticated(self):
-        return bool(self.workspace)
+        return bool(self.project)
 
     @cached_property
     def project(self):
@@ -86,7 +86,7 @@ class GeminAPI(object):
         return self.get("navigationcards", self.wsid) or {}
 
     def search_items(self):
-        for item in self.post(self.workspace.get('Filter'), 'items', 'filtered'):
+        for item in self.post(self.workspace.get('Filter'), 'items', 'filtered') or []:
             yield self.clean_item(item)
 
     @cached_property

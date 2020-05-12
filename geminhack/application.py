@@ -1,7 +1,6 @@
 from os import environ
 from logging import getLogger, basicConfig, DEBUG
-from flask import Flask, render_template, request, Response, abort, send_from_directory, redirect
-from .memoizer import memoize
+from flask import Flask, render_template, request, Response, abort, send_from_directory, redirect, session
 from .geminlib import GeminAPI
 from .zubelib import ZubeAPI, private_key_from_pem
 from .geminhack import GeminHack
@@ -40,15 +39,23 @@ app.config.from_mapping(
     LOG_LEVEL_NUM=20
 )
 log.setLevel(int(app.config['LOG_LEVEL_NUM']))
+app.secret_key = app.config['SECRET_KEY']
 
 
 def _create_ghack(username, password, confkey, FRESH=None):
-    prjid = app.config['{}_PRJ_ID'.format(confkey)]
-    wsid = app.config['{}_WS_ID'.format(confkey)]
+    prjkey = '{}_PRJ_ID'.format(confkey)
+    wskey = '{}_WS_ID'.format(confkey)
+    session.permanent = True
+    prjid = int(request.args.get('prjid', session.get(prjkey)) or app.config[prjkey])
+    wsid = int(request.args.get('wsid', session.get(wskey)) or app.config[wskey])
     gapi = GeminAPI(username, password, base_uri=app.config['GEMINI_URI'], prjid=prjid, wsid=wsid)
     if not gapi.authenticated:
         log.warning("Failed GeminAPI bootstrap for %s", username)
+        session.pop('username', None)
         abort(Response('Invalid LDAP auth for', 401, {'WWW-Authenticate': 'Basic realm="Login Required"'}))
+    session['username'] = username
+    session[prjkey] = prjid
+    session[wskey] = wsid
     zapi = ZubeAPI(
         app.config['ZUBE_CLIENT_ID'],
         private_key_from_pem(app.config['ZUBE_PEM']),
@@ -57,7 +64,7 @@ def _create_ghack(username, password, confkey, FRESH=None):
     return GeminHack(gapi, zapi, ALLOFUS)
 
 
-def get_hacker(confkey='ESUP') -> GeminHack:
+def get_hacker(confkey='ESUP',) -> GeminHack:
     auth = request.authorization
     if not auth:
         abort(Response('Required auth', 401, {'WWW-Authenticate': 'Basic realm="Login Required"'}))
@@ -76,7 +83,8 @@ def route(subpath, methods=None):
 def render_ticktable(ghack, title, rows):
     return render_template(
         'ticktable.html', home=app.config['CONTEXT_ROOT'], title=title, rows=rows, project_page=ghack.gapi.project_page,
-        workspace=ghack.gapi.workspace_page, zubeprojecturi=ghack.zapi.project_uri, zubesearcher=ghack.zapi.search_cards)
+        workspace=ghack.gapi.workspace_page, zubeprojecturi=ghack.zapi.project_uri, zubesearcher=ghack.zapi.search_cards,
+        workspaceid=ghack.gapi.wsid)
 
 
 @route("/")
