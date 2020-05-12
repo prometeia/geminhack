@@ -59,6 +59,7 @@ class GeminAPI(object):
         ret = requests.get(uri, auth=self.auth)
         log.debug("Resource %s returned %d", uri, ret.status_code)
         if not ret.status_code / 100 == 2:
+            log.warning("Failed GET to %s", uri)
             return
         return ret.json()
 
@@ -68,6 +69,7 @@ class GeminAPI(object):
         ret = requests.post(uri, auth=self.auth, json=dictdata)
         log.debug("Resource %s returned %d", uri, ret.status_code)
         if not ret.status_code / 100 == 2:
+            log.warning("Failed POST to %s", uri)
             return
         return ret.json()        
 

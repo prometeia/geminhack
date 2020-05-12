@@ -1,5 +1,5 @@
 from os import environ
-from logging import getLogger, basicConfig, INFO
+from logging import getLogger, basicConfig, DEBUG
 from flask import Flask, render_template, request, Response, abort, send_from_directory, redirect
 from .memoizer import memoize
 from .geminlib import GeminAPI
@@ -7,8 +7,11 @@ from .zubelib import ZubeAPI, private_key_from_pem
 from .geminhack import GeminHack
 
 PREFIXES = ('ESUP', 'UAT', 'ERMRFF', 'ERMDIR', 'ERM')
+ALLOFUS = ["Luigi Curzi", "Denis Brandolini", "Glauco Uri", "Loredana Ribatto",
+           "Matteo Gnudi", "Alessio Durinzi", "Mattia Gianessi"]
 
-basicConfig(level=INFO)
+
+basicConfig(level=DEBUG)
 log = getLogger(__name__)
 app = Flask(__name__, instance_relative_config=True)
 app.config.from_mapping(
@@ -34,7 +37,9 @@ app.config.from_mapping(
     ERM_PRJ_ID=36,
     ERM_WS_ID=4524,
     ERM_ZUBE_LABEL_ID=248440,
+    LOG_LEVEL_NUM=20
 )
+log.setLevel(int(app.config['LOG_LEVEL_NUM']))
 
 
 def _create_ghack(username, password, confkey, FRESH=None):
@@ -42,13 +47,14 @@ def _create_ghack(username, password, confkey, FRESH=None):
     wsid = app.config['{}_WS_ID'.format(confkey)]
     gapi = GeminAPI(username, password, base_uri=app.config['GEMINI_URI'], prjid=prjid, wsid=wsid)
     if not gapi.authenticated:
-        abort(Response('Invalid LDAP auth', 401, {'WWW-Authenticate': 'Basic realm="Login Required"'}))
+        log.warning("Failed GeminAPI bootstrap for %s", username)
+        abort(Response('Invalid LDAP auth for', 401, {'WWW-Authenticate': 'Basic realm="Login Required"'}))
     zapi = ZubeAPI(
         app.config['ZUBE_CLIENT_ID'],
         private_key_from_pem(app.config['ZUBE_PEM']),
         app.config['ZUBE_PRJ_ID'],
         app.config['ZUBE_PRJ_URI'])
-    return GeminHack(gapi, zapi)
+    return GeminHack(gapi, zapi, ALLOFUS)
 
 
 def get_hacker(confkey='ESUP') -> GeminHack:

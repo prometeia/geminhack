@@ -25,19 +25,20 @@ def jdump(data, where=None):
 class GeminHack(object):
     _tt_cache_lock = threading.Lock()
 
-    def __init__(self, geminapi: GeminAPI, zubeapi: ZubeAPI):
+    def __init__(self, geminapi: GeminAPI, zubeapi: ZubeAPI, allofus: list = None):
         self.gapi: GeminAPI = geminapi
         self.zapi: ZubeAPI = zubeapi
         self._tt_cache = None
         # TODO: Discover from gapi
-        self.allofus = ["Luigi Curzi", "Denis Brandolini", "Glauco Uri", "Loredana Ribatto",
-                        "Matteo Gnudi", "Alessio Durinzi"]
+        self.allofus = allofus or []
 
     @property
     def _tickets(self):
         with self._tt_cache_lock:
             if self._tt_cache is None:
-                self._tt_cache = {bid: self.gapi.get_item(bid) for bid in self.gapi.badges}
+                self._tt_cache = {a: b for a, b in (
+                    (bid, self.gapi.get_item(bid)) for bid in self.gapi.badges
+                ) if b}
             return self._tt_cache
 
     @property
@@ -60,7 +61,7 @@ class GeminHack(object):
 
     @property
     def tickets(self):
-        return sorted(self._tickets.values(), key=lambda x: x.get("Revised"), reverse=True)
+        return sorted(self._tickets.values(), key=lambda x: x.get("Revised") or '', reverse=True)
 
     @property
     def active(self):
