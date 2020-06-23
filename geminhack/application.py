@@ -4,6 +4,7 @@ from flask import Flask, render_template, request, Response, abort, send_from_di
 from .geminlib import GeminAPI
 from .zubelib import ZubeAPI, private_key_from_pem
 from .geminhack import GeminHack
+from .trellolib import TrelloAPI
 
 PREFIXES = ('ESUP', 'UAT', 'ERMRFF', 'ERMDIR', 'ERM')
 ALLOFUS = ["Luigi Curzi", "Denis Brandolini", "Glauco Uri", "Loredana Ribatto",
@@ -36,10 +37,16 @@ app.config.from_mapping(
     ERM_PRJ_ID=36,
     ERM_WS_ID=4524,
     ERM_ZUBE_LABEL_ID=248440,
-    LOG_LEVEL_NUM=20
+    LOG_LEVEL_NUM=20,
+    TRELLO_APP_KEY = 'a115d0bcf14a665d4846f3a437a3868e',
+    TRELLO_APP_SECRET_FILE = "trello_api_secret.pem"
 )
 log.setLevel(int(app.config['LOG_LEVEL_NUM']))
 app.secret_key = app.config['SECRET_KEY']
+
+
+def _get_tapi():
+    return TrelloAPI(app.config['TRELLO_APP_KEY'], private_key_from_pem(app.config['TRELLO_APP_SECRET_FILE']))
 
 
 def _create_ghack(username, password, confkey, FRESH=None):
@@ -61,7 +68,7 @@ def _create_ghack(username, password, confkey, FRESH=None):
         private_key_from_pem(app.config['ZUBE_PEM']),
         app.config['ZUBE_PRJ_ID'],
         app.config['ZUBE_PRJ_URI'])
-    return GeminHack(gapi, zapi, ALLOFUS)
+    return GeminHack(gapi, zapi, _get_tapi(), ALLOFUS)
 
 
 def get_hacker(confkey='ESUP',) -> GeminHack:
@@ -91,7 +98,8 @@ def render_ticktable(ghack, title, rows):
 def home():
     return render_template('home.html', prefixes=PREFIXES,
                            home=app.config['CONTEXT_ROOT'],
-                           gemini=app.config['GEMINI_URI'])
+                           gemini=app.config['GEMINI_URI'],
+                           tapi=_get_tapi())
 
 
 @route('statics/<path:path>')

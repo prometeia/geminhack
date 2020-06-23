@@ -7,6 +7,7 @@ from requests_ntlm import HttpNtlmAuth
 from logging import getLogger
 from .geminlib import last_commenter, GeminAPI
 from .zubelib import ZubeAPI
+from .trellolib import TrelloAPI
 
 log = getLogger(__name__)
 
@@ -25,9 +26,10 @@ def jdump(data, where=None):
 class GeminHack(object):
     _tt_cache_lock = threading.Lock()
 
-    def __init__(self, geminapi: GeminAPI, zubeapi: ZubeAPI, allofus: list = None):
+    def __init__(self, geminapi: GeminAPI, zubeapi: ZubeAPI, tapi: TrelloAPI, allofus: list = None):
         self.gapi: GeminAPI = geminapi
         self.zapi: ZubeAPI = zubeapi
+        self.tapi: TrelloAPI = tapi
         self._tt_cache = None
         # TODO: Discover from gapi
         self.allofus = allofus or []
@@ -101,7 +103,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
     gapi = GeminAPI(args.username, args.password, "https://erm-swfactory.prometeia.com/Gemini", 
                     args.prjid, args.wsid)
-    ge = GeminHack(gapi, None)
+    ge = GeminHack(gapi, None, None)
     dwhere = tempfile.mkdtemp("export", "geminhack")
     print("Exporting issue in %s" % dwhere)
     for ti in ge.wip:

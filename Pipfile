@@ -12,6 +12,9 @@ requests = "*"
 requests-ntlm = "*"
 wrapt = "*"
 pyjwt = "*"
+py-trello = "*"
+pygithub = "*"
+pyyaml = "*"
 
 [requires]
 python_version = "3.8"
