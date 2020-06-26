@@ -7,7 +7,9 @@ MAPTO = {
     "To do": "To do",
     "In progress": "In progress",
     "In review": "In progress",
-    "Done": "Done"
+    "Done": "Done",
+    "Obsolete": None,
+    "Backlog": None
 }
 
 TARGET_BOARD = "Current Sprint"
@@ -34,6 +36,8 @@ if __name__ == '__main__':
             target = get_col_dict(prj)
             continue
         for colname, colid in get_col_dict(prj).items():
+            if colname not in MAPTO:
+                print(f"WARNING: Unknown source column '{colname}' on board '{prj.name}'", file=stderr)
             tg = MAPTO.get(colname)
             if not tg:
                 continue
@@ -50,7 +54,7 @@ if __name__ == '__main__':
             "uses": "jonabc/linked-project-columns@v1.1.0",
             "with": dict(
                 github_token=r"${{ secrets.ORGS_TOKEN }}",
-                source_column_id=', '.join(sorted(sources[srcname])),
+                source_column_id=', '.join(sorted(set(sources[srcname]))),
                 target_column_id=target[srcname]
             )
         }
@@ -58,7 +62,7 @@ if __name__ == '__main__':
         print(f"Added {srcname} mirror step", file=stderr)
     action = dict(
         name="Sprint project mirroring",
-        on=dict(schedule=[dict(cron= '*/5 * * * *')]),
+        on=dict(schedule=[dict(cron='*/5 08-20 * * 1-5')]),
         jobs=dict(sprint={
             "runs-on": "ubuntu-latest",
             "steps": steps
