@@ -55,14 +55,15 @@ if __name__ == '__main__':
             "with": dict(
                 github_token=r"${{ secrets.ORGS_TOKEN }}",
                 source_column_id=', '.join(sorted(set(sources[srcname]))),
-                target_column_id=target[srcname]
+                target_column_id=target[srcname],
+                add_note=False
             )
         }
         steps.append(mstep)
         print(f"Added {srcname} mirror step", file=stderr)
     action = dict(
         name="Sprint project mirroring",
-        on=dict(schedule=[dict(cron='*/5 08-20 * * 1-5')]),
+        on=dict(schedule=[dict(cron='*/30 08-20 * * 1-5')]),
         jobs=dict(sprint={
             "runs-on": "ubuntu-latest",
             "steps": steps
