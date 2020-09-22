@@ -1,7 +1,7 @@
 pipeline {
     agent {label 'linux'}
     triggers {
-        cron('H/5 * * * *')
+        cron(env.BRANCH_NAME == 'master' ? 'H/15 * * * *' : '')
     }
     options {
       buildDiscarder(logRotator(numToKeepStr: '10'))
