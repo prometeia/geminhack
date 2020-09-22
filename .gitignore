@@ -125,3 +125,4 @@ dmypy.json
 ### TMP
 
 *.tmp.yaml
+*.bak

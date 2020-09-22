@@ -2,20 +2,22 @@ from github import Github, Project
 from yaml import dump
 from sys import stderr
 
+## cfr. https://github.com/PyGithub/PyGithub/tree/master/github
 
 MAPTO = {
-    "To do": "To do",
+    "To do": "To do",    
     "In progress": "In progress",
-    "In review": "In progress",
+    "To verify": "In review",
+    "In review": "In review",
     "Done": "Done",
+    "Parked": None,
     "Obsolete": None,
     "Backlog": None
 }
 
-TARGET_BOARD = "Current Sprint"
-
 
 class GitHubBoarder(object):
+    SPRINT_BOARD_NAME = "Current Sprint"
 
     def __init__(self, token: str, organization: str):
         self.g = Github(token)
@@ -26,9 +28,13 @@ class GitHubBoarder(object):
             if prj.name == name:
                 return prj
 
+    @property
+    def sprint_board(self):
+        return self.get_board(self.SPRINT_BOARD_NAME)
+
     @staticmethod
     def get_col_dict(prj: Project) -> dict:
-        return {col.name: col.node_id for col in prj.get_columns()}                
+        return {col.name: col.node_id for col in prj.get_columns()}
 
     def create_clone_action(self):
         target = {}
@@ -36,7 +42,7 @@ class GitHubBoarder(object):
         for prj in self.org.get_projects():
             if prj.state != "open" or prj.name.startswith("Sprint"):
                 continue
-            if prj.name == TARGET_BOARD:
+            if prj.name == self.SPRINT_BOARD_NAME:
                 target = self.get_col_dict(prj)
                 continue
             for colname, colid in self.get_col_dict(prj).items():
