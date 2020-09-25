@@ -122,7 +122,7 @@ class Gegi(object):
         if self.quotefile:
             log.info("Creating %s quote file", self.quotefile)
             with open(self.quotefile, 'wt') as qf:
-                qf.write("status;title;size\n")
+                qf.write("status;size;title\n")
                 for status, title, size in cards:
                     qf.write(f'"{status}";{size};"{title}"\n')
 
