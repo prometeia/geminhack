@@ -35,7 +35,7 @@ class Gegi(object):
         parser.add_argument("-o", "--organization")
         parser.add_argument("-u", "--username")
         parser.add_argument("-p", "--password")
-        parser.add_argument("-b", "--board", default="!Bug, Supporto e Processi")
+        parser.add_argument("-b", "--board")
         parser.add_argument("--quoteboard", default=GitHubBoarder.SPRINT_BOARD_NAME, help="Board to quote")
         parser.add_argument("--quotefile", help="Output csv file of quoting")
         parser.add_argument('-w','--workspaces', nargs='+', help='List of project:workspaces on Gemini')
