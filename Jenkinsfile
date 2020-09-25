@@ -15,7 +15,7 @@ pipeline {
     }
     post {
         always {
-			archiveArtifacts artifacts: 'currentsprint.csv', onlyIfSuccessful: true
+			archiveArtifacts artifacts: '*.csv', onlyIfSuccessful: true
             deleteDir()
         }
     }

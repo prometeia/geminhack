@@ -25,12 +25,12 @@ def text2gitem(text):
 
 
 class Gegi(object):
-    CONFKEY = 'MAIN'
     GEMINI_URI = "https://erm-swfactory.prometeia.com/Gemini"
 
     def __init__(self):
         parser = argparse.ArgumentParser()
         parser.add_argument("mongouri")
+        parser.add_argument("confkey", default="MAIN", help="Unique configuration KEY")
         parser.add_argument("-t", "--token")
         parser.add_argument("-o", "--organization")
         parser.add_argument("-u", "--username")
@@ -42,7 +42,8 @@ class Gegi(object):
         args = parser.parse_args()
         # Connecting to mongodb
         self.db = MongoClient(args.mongouri).get_default_database()
-        ref = {"_id": self.CONFKEY}
+        ref = {"_id": args.confkey}
+        log.info("Working with configuration %s", ref['_id'])
         mainconf = dict(self.db.conf.find_one(ref) or ref)
         for key, val in vars(args).items():
             if val is not None and key not in ('mongouri', 'quoteboard', 'quotefile'):
