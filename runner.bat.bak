@@ -1,0 +1,21 @@
+pipenv run python -m geminhack.ge2gi mongodb://geminhack:apn2c3578a23x805@erm-pytho-c04.prometeia.lan,erm-pytho-c06.prometeia.lan/geminhack?replicaSet=rsdaa -t 5e22096685347ad0a62cf66f76137c96fa138df7 -o prometeia -u brandolinid -p H65d1d3W -w 46:4236 37:4295
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
