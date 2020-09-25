@@ -9,7 +9,7 @@ pipeline {
     stages {
         stage('Synca') {
             steps {
-                sh './gegirun.sh'
+                sh 'chmod u+x gegirun.sh;./gegirun.sh'
             }
         }
     }
