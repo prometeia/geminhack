@@ -1,8 +1,7 @@
-String cron_string = BRANCH_NAME == "master" ? "H/15 8-20 * * 1-6" : ""
 pipeline {
     agent {label 'geminhack'}
     triggers {
-        cron(cron_string)
+        cron("H/15 8-20 * * 1-6")
     }
     options {
       buildDiscarder(logRotator(numToKeepStr: '10'))
